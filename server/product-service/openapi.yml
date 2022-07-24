@@ -1,0 +1,110 @@
+openapi: 3.0.0
+servers:
+  - url: https://8x993dg02g.execute-api.eu-west-1.amazonaws.com/dev
+components:
+  schemas:
+    ProductList:
+      title: ProductList
+      type: object
+      required:
+        - items
+        - total
+      properties:
+        items:
+          title: List of products
+          type: array
+          items:
+            type: object
+        total:
+          title: Total
+          type: integer
+    Product:
+      title: Product
+      type: object
+      required:
+        - count
+        - description
+        - id
+        - price
+        - title
+      properties:
+        count:
+          title: Count
+          type: integer
+        description:
+          title: Description
+          type: string
+        id:
+          title: Id
+          type: string
+        price:
+          title: Price
+          type: integer
+        title:
+          title: Title
+          type: string
+    Error:
+      title: Error
+      type: object
+      default: null
+  securitySchemes: {}
+info:
+  title: My Bakery
+  description: This is API for bakery shop
+  version: 0.0.1
+paths:
+  /products:
+    get:
+      operationId: getAll
+      summary: Get list of products
+      description: Get list of products
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductList'
+        '404':
+          description: Error object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/product/{id}':
+    get:
+      operationId: getById
+      summary: Get product by ID
+      description: Get product by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of product
+      responses:
+        '200':
+          description: A product object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Error object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
