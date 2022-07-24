@@ -3,16 +3,15 @@ import 'source-map-support/register';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/apiGateway';
 import { formatJSONResponse } from '@libs/apiGateway';
 import { middyfy } from '@libs/lambda';
-
-import {fakeGetAll} from "../../mocks/products";
+import { ProductService } from '@services/products-service';
 
 const getById: ValidatedEventAPIGatewayProxyEvent<null> = async (event) => {
   const { id } = event.pathParameters;
 
-  console.log('getById ID', id);
+  console.log('[Get Product By ID]:', id);
+  const service = new ProductService();
   try {
-    const result = await fakeGetAll();
-    const product = result.find((p) => p.id === id);
+    const product = await service.getByID(id);
 
     if (!product) {
       return formatJSONResponse({
