@@ -2,6 +2,7 @@ import type { AWS } from '@serverless/typescript';
 
 import getAll from '@functions/get-all';
 import getById from '@functions/get-by-id';
+import create from '@functions/create';
 
 import documentation from 'serverless.docs';
 
@@ -18,7 +19,9 @@ const serverlessConfiguration: AWS = {
   plugins: [
       'serverless-webpack',
       'serverless-openapi-documentation',
+      'serverless-dotenv-plugin'
   ],
+  useDotenv: true,
   provider: {
     name: 'aws',
     runtime: 'nodejs12.x',
@@ -34,7 +37,7 @@ const serverlessConfiguration: AWS = {
     lambdaHashingVersion: '20201221',
   },
   // import the function via paths
-  functions: { getAll, getById },
+  functions: { getAll, getById, create },
 };
 
 module.exports = serverlessConfiguration;
