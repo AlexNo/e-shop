@@ -19,7 +19,7 @@ const serverlessConfiguration: AWS = {
   useDotenv: true,
   provider: {
     name: 'aws',
-    runtime: 'nodejs12.x',
+    runtime: 'nodejs14.x',
     stage: 'dev',
     region: 'eu-west-1',
     apiGateway: {
@@ -36,6 +36,11 @@ const serverlessConfiguration: AWS = {
         Effect: 'Allow',
         Action: 's3:*',
         Resource: `arn:aws:s3:::${process.env.BUCKET_NAME}/*`,
+      },
+      {
+        Effect: 'Allow',
+        Action: 'sqs:*',
+        Resource: `arn:aws:sqs:${process.env.SQS_ARN}`,
       },
     ],
     environment: {

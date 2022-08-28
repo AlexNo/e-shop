@@ -7,7 +7,7 @@ import {
     DeleteObjectRequest,
 } from '@aws-sdk/client-s3';
 
-import s3 from '@libs/s3-client';
+import {s3} from '@libs/aws-clients';
 
 export class FileService {
     static async parseCSV(stream: Readable) {

@@ -1,4 +1,7 @@
 import {Client, QueryResult} from 'pg';
+import {PublishCommand} from "@aws-sdk/client-sns";
+
+import {sns} from '@libs/aws-clients';
 
 const SELECT_ALL = 'SELECT id, title, price, count, description FROM products JOIN stocks ON id = product_id';
 const SELECT_BY_ID = `SELECT id, title, count, description FROM products JOIN stocks ON id = product_id WHERE id = $1`;
@@ -27,11 +30,10 @@ const dbOptions = {
 }
 
 export class ProductService {
-    private db: Client;
-
-    constructor() {
-        this.db = new Client(dbOptions);
+    private get client() {
+        return new Client(dbOptions);
     }
+
     async getAll() {
         const {rows} = await this.select(SELECT_ALL);
         return rows;
@@ -43,36 +45,69 @@ export class ProductService {
     }
 
     async create(product) {
+        const dbClient = this.client;
+
         try {
-            await this.db.connect();
-            await this.db.query('BEGIN');
+            await dbClient.connect();
+            await dbClient.query('BEGIN');
 
-            const {rows: [{ id }]} = await this.db.query(INSERT_PRODUCT(product))
-            await this.db.query(INSERT_COUNT(id, product.count))
+            console.log('[ProductService][create]', product)
 
-            await this.db.query('COMMIT');
+            const {rows: [{ id }]} = await dbClient.query(INSERT_PRODUCT(product))
+            await dbClient.query(INSERT_COUNT(id, product.count))
 
-            const {rows: [result]} = await this.db.query(SELECT_BY_ID, [id]);
+            await dbClient.query('COMMIT');
+
+            const {rows: [result]} = await dbClient.query(SELECT_BY_ID, [id]);
 
             return result;
         } catch(err) {
             console.error('[Product Service] Database request error:', err);
-            await this.db.query('ROLLBACK');
+            await dbClient.query('ROLLBACK');
             throw err;
         } finally {
-            this.db.end();
+            dbClient.end();
         }
     }
 
     private async select(sql: string, params?: any[]):Promise<QueryResult> {
+        const dbClient = this.client;
+
         try {
-            await this.db.connect();
-            return await this.db.query(sql, params);
+            await dbClient.connect();
+            return await dbClient.query(sql, params);
         } catch(err) {
             console.error('[Product Service:Select] Database request error:', err);
             throw err;
         } finally {
-            this.db.end();
+            dbClient.end();
         }
+    }
+
+    async handleProductsQueue(records) {
+        const promises = records.map(async (record) => {
+            console.log('[ProductService][handleProductsQueue]', record.body)
+            const products = JSON.parse(record.body);
+
+            for(const p of products) {
+                await this.create(p);
+            }
+
+            const params = {
+                Subject: `[Import] Added new products(${products.length})`,
+                Message: record.body,
+                TopicArn: process.env.SNS_ARN,
+                MessageAttributes: {
+                    count: {
+                        DataType: 'Number',
+                        StringValue: `${products.length}`
+                    }
+                }
+            };
+
+            await sns.send(new PublishCommand(params));
+        });
+
+        await Promise.all(promises);
     }
 }
