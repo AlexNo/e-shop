@@ -2,7 +2,7 @@ import 'source-map-support/register';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 
-import s3 from '@libs/s3-client';
+import {s3} from '@libs/aws-clients';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/apiGateway';
 import { formatJSONResponse } from '@libs/apiGateway';
 import { middyfy } from '@libs/lambda';

@@ -2,9 +2,10 @@ import 'source-map-support/register';
 import {GetObjectCommand} from '@aws-sdk/client-s3';
 import type {Handler, S3Event} from 'aws-lambda';
 
-import s3 from '@libs/s3-client';
+import {s3} from '@libs/aws-clients';
 import {middyfy} from '@libs/lambda';
 import { FileService } from '@services/file-service';
+import {MessagesService} from "@services/messges-service";
 
 const importFileParser:Handler = async (event:S3Event) => {
     for (const record of event.Records) {
@@ -23,6 +24,8 @@ const importFileParser:Handler = async (event:S3Event) => {
 
         const parsedResults = await FileService.parseCSV(response.Body);
         console.log('[import-file-parser] parsed csv:', parsedResults);
+
+        await MessagesService.send(parsedResults);
 
         const success = await FileService.moveToParsed(bucket, object);
         if (success) {

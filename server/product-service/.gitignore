@@ -10,3 +10,4 @@ jspm_packages
 
 # Environment
 .env
+env.json
