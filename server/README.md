@@ -1,4 +1,4 @@
 # e-shop server side
 
 TODO
-Task-6
+Task-7
